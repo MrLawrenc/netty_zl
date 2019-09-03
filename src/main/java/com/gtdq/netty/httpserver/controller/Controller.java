@@ -14,7 +14,7 @@ public class Controller {
 
     @UriMapping("/test")
     public String test() {
-        System.out.println("调用了controller..........");
+        System.out.println(Thread.currentThread().getName() + "调用了controller..........");
         return "success";
     }
 

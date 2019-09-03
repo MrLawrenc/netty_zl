@@ -4,10 +4,19 @@ import com.gtdq.netty.utils.ExceptionUtil;
 import com.gtdq.netty.utils.LogUtil;
 import com.gtdq.netty.utils.ObjUtil;
 import com.gtdq.netty.utils.ParamUtil;
+import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.multipart.Attribute;
+import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
+import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -18,12 +27,15 @@ import java.util.Objects;
  */
 public class Request {
 
+
+    private static Map<String, Map<Method, Object>> uriMap = ObjUtil.getSingletonObj(UriMappingAnalysis.class).getUriMap();
+
     /**
      * @author : LiuMing
      * @date : 2019/9/1 0:47
      * @description :  根据请求的url和初始化保存的uri对比，如果找到了就根据反射调用相应的方法，然后返回response
      */
-    public static FullHttpResponse get(String uri, Map<String, Map<Method, Object>> uriMap) {
+    public static FullHttpResponse get(String uri) {
         String[] uriAndParams = uri.split("\\?");
         String uriPath = uriAndParams[0];
         Map<String, String> paramMap = null;
@@ -100,5 +112,48 @@ public class Request {
             }
         }
         return params;
+    }
+
+    /**
+     * @author : LiuMing
+     * @date : 2019/9/3 16:06
+     * @description :   获取post请求的response
+     */
+    public static FullHttpResponse post(HttpRequest request) {
+        try {
+            FullHttpRequest fullRequest = (FullHttpRequest) request;
+            HashMap<String, String> paramMap = postParams(fullRequest);
+            return invokeByUri(uriMap, paramMap, request.uri());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+    @Deprecated
+    public void postParam(FullHttpRequest fullRequest) {
+        byte[] bytes = new byte[1024];
+        ByteBuf byteBuf = fullRequest.content().readBytes(bytes);
+        String content = new String(bytes, Charset.defaultCharset());
+        System.out.println(byteBuf);
+        LogUtil.infoLog("post请求的数据为:{}", content);
+    }
+
+    /**
+     * @author : LiuMing
+     * @date : 2019/9/3 16:06
+     * @description :  获取post请求的参数
+     */
+    private static HashMap<String, String> postParams(FullHttpRequest fullRequest) throws IOException {
+        HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(fullRequest);
+        decoder.offer(fullRequest);
+        List<InterfaceHttpData> paramList = decoder.getBodyHttpDatas();
+        HashMap<String, String> paramMap = new HashMap<>();
+        for (InterfaceHttpData param : paramList) {
+            Attribute data = (Attribute) param;
+            paramMap.put(data.getName(), data.getValue());
+        }
+        return paramMap;
     }
 }

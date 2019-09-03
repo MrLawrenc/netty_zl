@@ -4,12 +4,13 @@ import com.gtdq.netty.httpserver.core.RequestDispatcher;
 import com.gtdq.netty.utils.ExceptionUtil;
 import com.gtdq.netty.utils.LogUtil;
 import com.gtdq.netty.utils.ObjUtil;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.*;
-import io.netty.util.CharsetUtil;
+import io.netty.handler.codec.http.HttpObject;
+import io.netty.handler.codec.http.HttpRequest;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author : LiuMingyao
@@ -17,6 +18,9 @@ import io.netty.util.CharsetUtil;
  * @description : TODO
  */
 public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
+
+    private static final ExecutorService service = Executors.newFixedThreadPool(3);
+
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
         if (msg instanceof HttpRequest) {
@@ -30,13 +34,6 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
         ctx.channel().close();//无状态，每次都关闭，长连接使用websocket
     }
 
-    public FullHttpResponse setHttpResp(String msg) {
-        ByteBuf content = Unpooled.copiedBuffer(msg, CharsetUtil.UTF_8);
-        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, content);
-        HttpHeaders headers = response.headers();
-        headers.set(HttpHeaderNames.CONTENT_TYPE, "text/plain");//文本内容相应
-        return response;
-    }
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
@@ -51,6 +48,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        //当channel的上下文ctx移除channel的时候触发
         LogUtil.warnLog("{}断开", ctx.channel());
 
         /**
@@ -62,6 +60,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        //当channel处于非活动状态，达到什么终结的时候被触发
         ctx.close();
     }
 

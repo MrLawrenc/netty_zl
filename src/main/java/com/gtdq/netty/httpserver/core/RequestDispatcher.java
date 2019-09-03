@@ -22,16 +22,17 @@ public class RequestDispatcher {
      * @date : 2019/8/31 23:21
      * @description :   分发不同类型的请求
      */
-    public void dispatcher(ChannelHandlerContext ctx, HttpRequest request) {
-        Map<String, Map<Method, Object>> uriMap = ObjUtil.getSingletonObj(UriMappingAnalysis.class).getUriMap();
+    public synchronized void dispatcher(ChannelHandlerContext ctx, HttpRequest request) {
 
         String uri = request.uri();
-        LogUtil.infoLog("发起{}请求  请求的uri:{}", request.method().name(), uri);
+        LogUtil.infoLog("{}发起{}请求  请求的uri:{}", Thread.currentThread().getName(), request.method().name(), uri);
         FullHttpResponse response;
         if (request.method().name().equals("GET")) {
-            response = Request.get(uri, uriMap);
+            response = Request.get(uri);
+        } else if (request.method().name().equals("POST")) {
+            response=Request.post(request);
         } else {
-            response = Request.get(uri, uriMap);
+            response = Request.get(uri);
         }
 
         ctx.writeAndFlush(response);
