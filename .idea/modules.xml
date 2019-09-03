@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/netty_lecture.iml" filepath="$PROJECT_DIR$/.idea/netty_lecture.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.gtdq.netty_lecture.iml" filepath="$PROJECT_DIR$/.idea/modules/com.gtdq.netty_lecture.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.gtdq.netty_lecture.main.iml" filepath="$PROJECT_DIR$/.idea/modules/com.gtdq.netty_lecture.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.gtdq.netty_lecture.test.iml" filepath="$PROJECT_DIR$/.idea/modules/com.gtdq.netty_lecture.test.iml" />
     </modules>
   </component>
 </project>
